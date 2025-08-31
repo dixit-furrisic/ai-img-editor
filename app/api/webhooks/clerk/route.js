@@ -9,7 +9,6 @@ const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL);
 
 export async function POST(req) {
 
-    console.log('🔄 Subscription webhook received');
 
     try {
         // 1. Verify webhook
@@ -30,7 +29,7 @@ export async function POST(req) {
             'svix-signature': svixSignature,
         });
 
-        console.log('📦 Event:', evt.type, '| User:', evt.data);
+        ('📦 Event:', evt.type, '| User:', evt.data);
 
         // 2. Handle only subscription events
         switch (evt.type) {
@@ -69,10 +68,7 @@ async function updateUserSubscription(data, action) {
 
     const activeItem = data.items?.find((item) => item.status === "active");
 
-    console.log(`🔄 ${action} subscription:`, data.id);
-    console.log("🔑 Clerk User ID:", clerkUserIdRaw);
-    console.log("📦 Active Plan:", activeItem?.plan?.name);
-    console.log("clearKUSer : ", clerkUserIdRaw);
+
 
 
     await convex.mutation(api.users.updateSubscription, {
@@ -83,13 +79,11 @@ async function updateUserSubscription(data, action) {
         currentPeriodEnd: activeItem?.period_end,
     });
 
-    console.log("✅ Subscription synced to database");
 }
 
 // Cancel user subscription
 async function cancelUserSubscription(data) {
-    const clerkUserId = data.payer.user_id; 
-    console.log('🗑️ Cancelling subscription:', data.id);
+    const clerkUserId = data.payer.user_id;
 
     await convex.mutation(api.users.updateSubscription, {
         clerkUserId,
@@ -99,7 +93,6 @@ async function cancelUserSubscription(data) {
         currentPeriodEnd: data.current_period_end,
     });
 
-    console.log('✅ User downgraded to free plan');
 }
 
 // Map Clerk plan to your internal plans

@@ -100,129 +100,106 @@ export function AdjustControls() {
   };
 
   const applyFilters = async (newValues) => {
-  const imageObject = getActiveImage();
-  if (!imageObject || isApplying) return;
+    const imageObject = getActiveImage();
+    if (!imageObject || isApplying) return;
 
-  setIsApplying(true);
+    setIsApplying(true);
 
-  try {
-    // Get canvas dimensions
-    const canvasWidth = canvasEditor.getWidth() / canvasEditor.getZoom();
-    const canvasHeight = canvasEditor.getHeight() / canvasEditor.getZoom();
+    try {
+      // Get canvas dimensions
+      const canvasWidth = canvasEditor.getWidth() / canvasEditor.getZoom();
+      const canvasHeight = canvasEditor.getHeight() / canvasEditor.getZoom();
 
-    // Store original properties to prevent displacement
-    const originalLeft = imageObject.left;
-    const originalTop = imageObject.top;
-    const originalScaleX = imageObject.scaleX;
-    const originalScaleY = imageObject.scaleY;
-    const originalAngle = imageObject.angle || 0;
+      // Store original properties to prevent displacement
+      const originalLeft = imageObject.left;
+      const originalTop = imageObject.top;
+      const originalScaleX = imageObject.scaleX;
+      const originalScaleY = imageObject.scaleY;
+      const originalAngle = imageObject.angle || 0;
 
-    console.log('Before filter application:', {
-      canvasWidth,
-      canvasHeight,
-      imageLeft: imageObject.left,
-      imageTop: imageObject.top,
-      imageWidth: imageObject.width,
-      imageHeight: imageObject.height,
-      scaleX: imageObject.scaleX,
-      scaleY: imageObject.scaleY,
-      actualWidth: imageObject.width * imageObject.scaleX,
-      actualHeight: imageObject.height * imageObject.scaleY
-    });
 
-    // Check if image is within bounds
-    const actualWidth = imageObject.width * originalScaleX;
-    const actualHeight = imageObject.height * originalScaleY;
-    
-    if (originalLeft < 0 || originalTop < 0 || 
+
+      // Check if image is within bounds
+      const actualWidth = imageObject.width * originalScaleX;
+      const actualHeight = imageObject.height * originalScaleY;
+
+      if (originalLeft < 0 || originalTop < 0 ||
         originalLeft > canvasWidth || originalTop > canvasHeight ||
         actualWidth > canvasWidth * 2 || actualHeight > canvasHeight * 2) {
-      
-      console.warn('Image is outside canvas bounds, repositioning...');
-      
-      // Recalculate proper scale and position
-      const paddingFactor = 0.9;
-      const newScaleX = (canvasWidth * paddingFactor) / imageObject.width;
-      const newScaleY = (canvasHeight * paddingFactor) / imageObject.height;
-      const newScale = Math.min(newScaleX, newScaleY);
-      
-      // Center the image
-      const newLeft = canvasWidth / 2;
-      const newTop = canvasHeight / 2;
-      
-      imageObject.set({
-        left: newLeft,
-        top: newTop,
-        scaleX: newScale,
-        scaleY: newScale,
-        originX: "center",
-        originY: "center",
-      });
-      
-      imageObject.setCoords();
-      
-      console.log('Image repositioned to:', {
-        left: newLeft,
-        top: newTop,
-        scaleX: newScale,
-        scaleY: newScale
-      });
-    }
 
-    // Apply filters
-    const filtersToApply = [];
+        console.warn('Image is outside canvas bounds, repositioning...');
 
-    FILTER_CONFIGS.forEach((config) => {
-      const value = newValues[config.key];
-      if (value !== config.defaultValue) {
-        const transformedValue = config.transform(value);
-        filtersToApply.push(
-          new config.filterClass({
-            [config.valueKey]: transformedValue,
-          })
-        );
+        // Recalculate proper scale and position
+        const paddingFactor = 0.9;
+        const newScaleX = (canvasWidth * paddingFactor) / imageObject.width;
+        const newScaleY = (canvasHeight * paddingFactor) / imageObject.height;
+        const newScale = Math.min(newScaleX, newScaleY);
+
+        // Center the image
+        const newLeft = canvasWidth / 2;
+        const newTop = canvasHeight / 2;
+
+        imageObject.set({
+          left: newLeft,
+          top: newTop,
+          scaleX: newScale,
+          scaleY: newScale,
+          originX: "center",
+          originY: "center",
+        });
+
+        imageObject.setCoords();
+
+
       }
-    });
 
-    imageObject.filters = filtersToApply;
+      // Apply filters
+      const filtersToApply = [];
 
-    // Apply filters and ensure position is maintained
-    await new Promise((resolve) => {
-      imageObject.applyFilters();
-      
-      // Restore position if it changed during filter application
-      imageObject.set({
-        left: imageObject.left,
-        top: imageObject.top,
-        scaleX: imageObject.scaleX,
-        scaleY: imageObject.scaleY,
-        angle: originalAngle,
+      FILTER_CONFIGS.forEach((config) => {
+        const value = newValues[config.key];
+        if (value !== config.defaultValue) {
+          const transformedValue = config.transform(value);
+          filtersToApply.push(
+            new config.filterClass({
+              [config.valueKey]: transformedValue,
+            })
+          );
+        }
       });
-      
-      // Update coordinates
-      imageObject.setCoords();
-      
-      // Force render
-      canvasEditor.requestRenderAll();
-      
-      setTimeout(resolve, 50);
-    });
 
-    console.log('After filter application:', {
-      imageLeft: imageObject.left,
-      imageTop: imageObject.top,
-      scaleX: imageObject.scaleX,
-      scaleY: imageObject.scaleY,
-      actualWidth: imageObject.width * imageObject.scaleX,
-      actualHeight: imageObject.height * imageObject.scaleY
-    });
+      imageObject.filters = filtersToApply;
 
-  } catch (error) {
-    console.error("Error applying filters:", error);
-  } finally {
-    setIsApplying(false);
-  }
-};
+      // Apply filters and ensure position is maintained
+      await new Promise((resolve) => {
+        imageObject.applyFilters();
+
+        // Restore position if it changed during filter application
+        imageObject.set({
+          left: imageObject.left,
+          top: imageObject.top,
+          scaleX: imageObject.scaleX,
+          scaleY: imageObject.scaleY,
+          angle: originalAngle,
+        });
+
+        // Update coordinates
+        imageObject.setCoords();
+
+        // Force render
+        canvasEditor.requestRenderAll();
+
+        setTimeout(resolve, 50);
+      });
+
+
+
+    } catch (error) {
+      console.error("Error applying filters:", error);
+    } finally {
+      setIsApplying(false);
+    }
+  };
 
   const handleValueChange = (filterKey, value) => {
     const newValues = {
@@ -230,7 +207,7 @@ export function AdjustControls() {
       [filterKey]: Array.isArray(value) ? value[0] : value,
     };
 
-    console.log("1 : new values :", newValues);
+    ("1 : new values :", newValues);
 
     setFilterValues(newValues);
     applyFilters(newValues);
@@ -290,7 +267,6 @@ export function AdjustControls() {
   };
 
   useEffect(() => {
-    console.log('imchanged');
 
     const imageObject = getActiveImage();
     if (imageObject?.filters) {

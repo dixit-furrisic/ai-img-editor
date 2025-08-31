@@ -130,19 +130,15 @@ const ResizeControls = ({ project }) => {
 
       // Save to undo stack BEFORE making changes
       saveUndoState(TRACKABLE_ACTIONS.CANVAS_RESIZED, {
-        previousState: previousCompleteState, 
+        previousState: previousCompleteState,
         oldWidth,
         oldHeight,
         newWidth,
         newHeight,
-        resizeType: 'manual' 
+        resizeType: 'manual'
       });
 
-      console.log('🔄 Canvas resize - saved previous state:', {
-        oldDimensions: `${oldWidth}x${oldHeight}`,
-        newDimensions: `${newWidth}x${newHeight}`,
-        objectCount: canvasEditor.getObjects().length
-      });
+
 
       // Now perform the resize operations
       canvasEditor.setWidth(newWidth);
@@ -180,7 +176,6 @@ const ResizeControls = ({ project }) => {
         canvasState: canvasEditor.toJSON(),
       });
 
-      console.log('✅ Canvas resize completed successfully');
 
     } catch (error) {
       console.error("💥 Error resizing canvas:", error);

@@ -314,15 +314,11 @@ export default function EditorTopBar({ project }) {
       const imageWidth = fabricImage.width;
       const imageHeight = fabricImage.height;
 
-      console.log('Reset - Canvas dimensions:', { canvasWidth, canvasHeight });
-      console.log('Reset - Image dimensions:', { imageWidth, imageHeight });
 
       // Scale to fit image inside canvas
       const scaleX = canvasWidth / imageWidth;
       const scaleY = canvasHeight / imageHeight;
       const scale = Math.min(scaleX, scaleY);
-
-      console.log('Reset - Calculated scale:', scale);
 
       fabricImage.set({
         originX: "center",
@@ -389,7 +385,7 @@ export default function EditorTopBar({ project }) {
             </Button>
           </div>
 
-     
+
 
           <h1 className="font-extrabold capitalize">{project.title}</h1>
 

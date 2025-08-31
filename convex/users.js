@@ -5,7 +5,6 @@ export const storeUser = mutation({
     args: {},
     handler: async (ctx) => {
         const identity = await ctx.auth.getUserIdentity();
-        console.log("identity : ", identity);
 
         if (!identity) {
             throw new Error("Called storeUser without authentication present");
@@ -82,7 +81,6 @@ export const updateSubscription = mutation({
         if (!user) {
             throw new Error(`User not found: ${args.clerkUserId}`);
         }
-        console.log("USER : ", user);
 
 
         // Update subscription info
@@ -93,6 +91,5 @@ export const updateSubscription = mutation({
             currentPeriodEnd: args.currentPeriodEnd,
         });
 
-        console.log(`✅ Updated subscription for user ${args.clerkUserId}: ${args.plan}`);
     },
 });

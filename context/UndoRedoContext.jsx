@@ -34,13 +34,7 @@ export const CanvasUndoRedoProvider = ({ children }) => {
     const canvasRef = useRef(null);
     const { canvasEditor } = useCanvas();
 
-    useEffect(() => {
-        console.log("undoStack : ", undoStack);
-    }, [undoStack])
 
-    useEffect(() => {
-        console.log("redoStack : ", redoStack);
-    }, [redoStack])
 
     const MAX_UNDO_STACK_SIZE = 70;
     const DEBOUNCE_DELAY = 500;
@@ -112,20 +106,14 @@ export const CanvasUndoRedoProvider = ({ children }) => {
     }, [isUndoRedoOperation, generateStateHash]);
 
     const saveUndoState = useCallback((actionType, metadata = {}) => {
-        console.group('💾 Save Undo State');
 
         if (!canvasRef.current || isUndoRedoOperation) {
-            console.log('❌ Save blocked:', {
-                hasCanvas: !!canvasRef.current,
-                isUndoRedoOperation
-            });
-            console.groupEnd();
+
             return;
         }
 
         // Clear existing debounce timeout for immediate save
         if (debounceTimeout.current) {
-            console.log('🛑 Cleared existing debounce timeout');
             clearTimeout(debounceTimeout.current);
             debounceTimeout.current = null;
         }
@@ -133,28 +121,18 @@ export const CanvasUndoRedoProvider = ({ children }) => {
         try {
             const canvasState = getCompleteCanvasState();
             if (!canvasState) {
-                console.warn('⚠️ Could not capture canvas state');
-                console.groupEnd();
                 return;
             }
 
             const currentHash = generateStateHash(JSON.stringify(canvasState));
 
-            console.log('📦 Canvas state captured:', {
-                hash: currentHash,
-                actionType,
-                dimensions: `${canvasState.canvasWidth}x${canvasState.canvasHeight}`,
-                objectCount: canvasState.objects?.length || 0,
-                metadata
-            });
 
             // For canvas resize, we might want to force save even if hash is same
             // because dimensions might have changed while objects stayed the same
             const shouldForceSave = actionType === TRACKABLE_ACTIONS.CANVAS_RESIZED;
 
             if (!shouldForceSave && lastSavedHash.current === currentHash) {
-                console.log('⏩ State unchanged. Skipping save.');
-                console.groupEnd();
+
                 return;
             }
 
@@ -175,28 +153,21 @@ export const CanvasUndoRedoProvider = ({ children }) => {
             setUndoStack(prev => {
                 const newStack = [...prev, stateWithMetadata];
                 if (newStack.length > MAX_UNDO_STACK_SIZE) {
-                    console.log('⚠️ Undo stack limit exceeded. Oldest state removed.');
                     newStack.shift();
                 }
-                console.log('✅ Undo stack updated:', {
-                    newLength: newStack.length,
-                    lastAction: actionType
-                });
+
                 return newStack;
             });
 
             setRedoStack(() => {
-                console.log('♻️ Redo stack cleared due to new action.');
                 return [];
             });
 
             lastSavedHash.current = currentHash;
-            console.log('🔐 Last saved hash updated.');
 
         } catch (error) {
             console.error('💥 Error saving undo state:', error);
         } finally {
-            console.groupEnd();
         }
     }, [isUndoRedoOperation, generateStateHash, getCompleteCanvasState]);
 
@@ -204,11 +175,7 @@ export const CanvasUndoRedoProvider = ({ children }) => {
         console.groupCollapsed('🌀 Undo Operation');
 
         if (!canvasRef.current || undoStack.length <= 1 || isUndoRedoOperation) {
-            console.log('❌ Undo blocked', {
-                hasCanvas: !!canvasRef.current,
-                undoStackLength: undoStack.length,
-                isUndoRedoOperation
-            });
+
             console.groupEnd();
             return false;
         }
@@ -263,17 +230,13 @@ export const CanvasUndoRedoProvider = ({ children }) => {
                 }, reject);
             });
 
-            console.log('✅ Undo applied:', {
-                actionType: previousStateData.actionType,
-                canvasSize: `${parsedState.canvasWidth}x${parsedState.canvasHeight}`
-            });
 
-            console.groupEnd();
+
             return true;
 
         } catch (error) {
             console.error('💥 Undo failed:', error);
-            console.groupEnd();
+
             return false;
 
         } finally {
@@ -287,7 +250,6 @@ export const CanvasUndoRedoProvider = ({ children }) => {
         console.group('🔄 Redo Operation');
 
         if (!canvasRef.current || redoStack.length === 0 || isUndoRedoOperation) {
-            console.log('❌ Redo blocked');
             console.groupEnd();
             return false;
         }
@@ -349,13 +311,11 @@ export const CanvasUndoRedoProvider = ({ children }) => {
 
             lastSavedHash.current = nextStateData.hash;
 
-            console.log('✅ Redo completed successfully');
             console.groupEnd();
             return true;
 
         } catch (error) {
             console.error('💥 Error during redo:', error);
-            console.groupEnd();
             return false;
         } finally {
             setIsUndoRedoOperation(false);
@@ -410,10 +370,7 @@ export const CanvasUndoRedoProvider = ({ children }) => {
 
         const handleObjectModified = (e) => {
             const obj = e.target;
-            console.log('✏️ Object modified:', {
-                type: obj?.type,
-                id: obj?.id
-            });
+
             saveToUndoStack(TRACKABLE_ACTIONS.OBJECT_MODIFIED, {
                 objectType: obj?.type,
                 objectId: obj?.id
@@ -422,10 +379,7 @@ export const CanvasUndoRedoProvider = ({ children }) => {
 
         const handleObjectAdded = (e) => {
             const obj = e.target;
-            console.log('➕ Object added:', {
-                type: obj?.type,
-                id: obj?.id
-            });
+
             saveToUndoStack(TRACKABLE_ACTIONS.OBJECT_ADDED, {
                 objectType: obj?.type,
                 objectId: obj?.id
@@ -434,10 +388,7 @@ export const CanvasUndoRedoProvider = ({ children }) => {
 
         const handleObjectRemoved = (e) => {
             const obj = e.target;
-            console.log('➖ Object removed:', {
-                type: obj?.type,
-                id: obj?.id
-            });
+
             saveToUndoStack(TRACKABLE_ACTIONS.OBJECT_REMOVED, {
                 objectType: obj?.type,
                 objectId: obj?.id
@@ -445,7 +396,6 @@ export const CanvasUndoRedoProvider = ({ children }) => {
         };
 
         const handlePathCreated = (e) => {
-            console.log('✍️ Path created (drawing mode)');
             saveToUndoStack(TRACKABLE_ACTIONS.OBJECT_ADDED, {
                 objectType: 'path',
                 isDrawing: true
@@ -453,7 +403,6 @@ export const CanvasUndoRedoProvider = ({ children }) => {
         };
 
         const handleCanvasResize = (e) => {
-            console.log('📐 Canvas resized:', e);
             saveToUndoStack(TRACKABLE_ACTIONS.CANVAS_RESIZED, {
                 oldWidth: e.oldWidth,
                 oldHeight: e.oldHeight,
@@ -469,15 +418,12 @@ export const CanvasUndoRedoProvider = ({ children }) => {
         canvasEditor.on('path:created', handlePathCreated);
         canvasEditor.on('canvas:resized', handleCanvasResize)
 
-        console.log('✅ Event listeners registered');
 
         return () => {
             canvasEditor.off('object:modified', handleObjectModified);
             canvasEditor.off('object:added', handleObjectAdded);
             canvasEditor.off('object:removed', handleObjectRemoved);
             canvasEditor.off('path:created', handlePathCreated);
-            console.log('🧹 Event listeners cleaned up');
-            console.groupEnd();
         };
     }, [canvasRef.current]);
 
